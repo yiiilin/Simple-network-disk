@@ -1,0 +1,31 @@
+server:
+  port: 9001
+spring:
+  profiles:
+    active: test
+  application:
+    name: SERVICE-SERVICE
+  main:
+    allow-bean-definition-overriding: true
+feign:
+  httpclient:
+    enabled: false
+  okhttp:
+    enabled: true
+
+socket-port:
+  socket-thread-size: 3
+  file-handle-thread-size: 1
+  file-max-size: 104857600  #分片大小
+---
+spring:
+  profiles: dev
+api-service:
+  url: http://localhost:7001/api/
+  server-address: localhost
+---
+spring:
+  profiles: test
+api-service:
+  url: http://linaxhua.cn:7001/api/
+  server-address: linaxhua.cn

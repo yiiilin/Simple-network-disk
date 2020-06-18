@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis3.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.linaxhua.file_transfer.server.dao.UserDao">
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="uid">
+        insert into `user`
+        (name,password )
+        values
+        (#{name},#{password})
+    </insert>
+    <update id="updateName">
+        update `user`
+        set name=#{name}
+        where uid=#{uid}
+    </update>
+    <update id="updatePassword">
+        update `user`
+        set password=#{password}
+        where uid=#{uid}
+    </update>
+    <select id="getUser" resultType="cn.linaxhua.file_transfer.common.entity.User">
+        select uid,name,password
+        from `user`
+        where uid=#{uid}
+    </select>
+</mapper>

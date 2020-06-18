@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis3.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.linaxhua.file_transfer.server.dao.BusinessDao">
+    <sql id="structure">
+        id,uid,path,uuid,name,size,update_time,type
+    </sql>
+    <insert id="addStructure">
+        insert into `structure`
+        (uid,path,uuid,name,size,update_time,type )
+        values
+        (#{uid},#{path},#{uuid},#{name},#{size},#{update_time},#{type})
+    </insert>
+    <update id="updateStructure">
+        update `structure`
+        <trim prefix="set" suffixOverrides=",">
+            <if test="path!=null">
+                path=#{path},
+            </if>
+            <if test="uuid!=null">
+                uuid=#{uuid},
+            </if>
+            <if test="name!=null">
+                name=#{name},
+            </if>
+            <if test="size!=null">
+                size=#{size},
+            </if>
+            <if test="update_time!=null">
+                update_time=#{update_time},
+            </if>
+            <if test="type!=null">
+                type=#{type},
+            </if>
+        </trim>
+        <where>
+            id=#{id}
+        </where>
+    </update>
+    <delete id="deleteStructure">
+        delete from `structure`
+        where id=#{id}
+    </delete>
+    <select id="listAllStructure" resultType="cn.linaxhua.file_transfer.common.entity.Structure">
+        select
+        <include refid="structure"/>
+        from structure s
+        where s.uid=#{uid}
+    </select>
+    <select id="getStructureByPath" resultType="cn.linaxhua.file_transfer.common.entity.Structure">
+        select
+        <include refid="structure"/>
+        from
+        (select
+        <include refid="structure"/>
+        from structure
+        where uid=#{uid}
+        ) as s
+        where s.path=#{path} and s.name=#{name}
+    </select>
+    <select id="getStructure" resultType="cn.linaxhua.file_transfer.common.entity.Structure">
+        select
+        <include refid="structure"/>
+        from structure s
+        where s.id=#{id}
+    </select>
+</mapper>
