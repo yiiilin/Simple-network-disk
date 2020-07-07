@@ -120,24 +120,7 @@ public class ApiService {
         }
     }
 
-    public List<Integer> downloadFile(Structure structure) {
-        JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(structure));
-        HttpEntity httpEntity = getTokenHeader(null, jsonObject);
-        ResponseEntity<String> result = restTemplate.exchange(getUrl(RestTemplateUtil.DOWNLOAD_FILE), HttpMethod.POST, httpEntity, String.class);
-        JSONObject resultJson = JSONObject.parseObject(result.getBody());
-        if (resultJson.get("code").toString().equals("200")) {
-            if (resultJson.get("data") == null) {
-                return null;
-            }
-            List<Integer> ports = JSONObject.parseObject(resultJson.get("data").toString(), new TypeReference<List<Integer>>() {
-            });
-            return ports;
-        } else {
-            return null;
-        }
-    }
-
-    public List<Integer> uploadFile(Structure structure) {
+    public String uploadFile(Structure structure) {
         JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(structure));
         HttpEntity httpEntity = getTokenHeader(null, jsonObject);
         ResponseEntity<String> result = restTemplate.exchange(getUrl(RestTemplateUtil.UPLOAD_FILE), HttpMethod.POST, httpEntity, String.class);
@@ -146,9 +129,7 @@ public class ApiService {
             if (resultJson.get("data") == null) {
                 return null;
             }
-            List<Integer> ports = JSONObject.parseObject(resultJson.get("data").toString(), new TypeReference<List<Integer>>() {
-            });
-            return ports;
+            return resultJson.get("data").toString();
         } else {
             return null;
         }

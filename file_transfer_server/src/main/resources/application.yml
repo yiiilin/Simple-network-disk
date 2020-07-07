@@ -2,7 +2,7 @@ server:
   port: 8001
 spring:
   profiles:
-    active: test
+    active: dev
   application:
     name: SERVICE-SERVER
   datasource:
@@ -30,8 +30,7 @@ mybatis:
 socket-port:
   socket-thread-size: 4
   file-handle-thread-size: 4
-  start-port: 40000
-  end-port: 40100
+  transfer-port: 40000
   file-max-size: 104857600  #分片大小
 ---
 spring:

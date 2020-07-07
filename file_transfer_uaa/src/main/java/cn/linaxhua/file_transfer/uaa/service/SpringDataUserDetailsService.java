@@ -21,8 +21,11 @@ public class SpringDataUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String uid) throws UsernameNotFoundException {
         try {
             User user = rbacDao.getUserByUid(uid);
+            if (user == null) {
+                return null;
+            }
             UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(user.getUid().toString())
-                    .password("{bcrypt}"+user.getPassword())
+                    .password("{bcrypt}" + user.getPassword())
                     .authorities("common")
                     .build();
             return userDetails;

@@ -27,6 +27,7 @@ public class SocketManager {
     private static Integer FILE_HANDLE_THREAD_SIZE;
     private static Integer SOCKET_PORT_SIZE;
     private static Integer FILE_MAX_SIZE;
+    private static Integer TRANSFER_PORT;
 
 
     @Value("${socket-port.file-handle-thread-size}")
@@ -44,6 +45,18 @@ public class SocketManager {
         FILE_MAX_SIZE = fileMaxSize;
     }
 
+    @Value("${socket-port.transfer-port}")
+    public void setTransferPort(Integer transferPort) {
+        TRANSFER_PORT = transferPort;
+    }
+
+    public static Integer getTransferPort() {
+        return TRANSFER_PORT;
+    }
+    public static Integer getFileMaxSize(){
+        return FILE_MAX_SIZE;
+    }
+
 
     @PostConstruct
     private void init() {
@@ -55,7 +68,7 @@ public class SocketManager {
         statistcsExecutor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, statistcsQueue);
     }
 
-    public void downloadFile(List<Integer> ports, Structure structure, String savePath, JTreePanel jTreePanel) throws IOException {
+    public void downloadFile(Structure structure, String savePath, JTreePanel jTreePanel) throws IOException {
         TransferLog transferLog = new TransferLog();
         transferLog.setFileName(structure.getName())
                 .setFileSize(structure.getSize().toString())
@@ -66,10 +79,10 @@ public class SocketManager {
                 .setLastConnectTime("null")
                 .setType("下载");
         int index = TransferListPanel.addData(transferLog);
-        fileExecutor.submit(new FileHandleRunnable(structure, ports, 1, socketExecutor, savePath, FILE_MAX_SIZE, jTreePanel, statistcsExecutor, transferLog, index));
+        fileExecutor.submit(new FileHandleRunnable(structure, 1, socketExecutor, savePath, FILE_MAX_SIZE, jTreePanel, statistcsExecutor, transferLog, index));
     }
 
-    public void uploadFile(List<Integer> ports, Structure structure, String path, JTreePanel jTreePanel) throws IOException {
+    public void uploadFile(Structure structure, String path, JTreePanel jTreePanel) throws IOException {
         TransferLog transferLog = new TransferLog();
         transferLog.setFileName(structure.getName())
                 .setFileSize(structure.getSize().toString())
@@ -80,7 +93,7 @@ public class SocketManager {
                 .setLastConnectTime("null")
                 .setType("上传");
         int index = TransferListPanel.addData(transferLog);
-        fileExecutor.submit(new FileHandleRunnable(structure, ports, 2, socketExecutor, path, FILE_MAX_SIZE, jTreePanel, statistcsExecutor, transferLog, index));
+        fileExecutor.submit(new FileHandleRunnable(structure, 2, socketExecutor, path, FILE_MAX_SIZE, jTreePanel, statistcsExecutor, transferLog, index));
     }
 
 }

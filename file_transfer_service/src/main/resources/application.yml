@@ -2,7 +2,7 @@ server:
   port: 9001
 spring:
   profiles:
-    active: test
+    active: dev
   application:
     name: SERVICE-SERVICE
   main:
@@ -14,6 +14,7 @@ feign:
     enabled: true
 
 socket-port:
+  transfer-port: 40000
   socket-thread-size: 3
   file-handle-thread-size: 1
   file-max-size: 104857600  #分片大小

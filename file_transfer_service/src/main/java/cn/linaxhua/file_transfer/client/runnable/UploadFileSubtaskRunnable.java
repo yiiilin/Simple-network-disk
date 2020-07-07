@@ -4,10 +4,7 @@ import cn.linaxhua.file_transfer.client.config.ServerConfig;
 import cn.linaxhua.file_transfer.client.vo.TransferLog;
 import lombok.SneakyThrows;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -23,23 +20,22 @@ public class UploadFileSubtaskRunnable implements Callable<Integer> {
     private String fileAbsolutePath = null;
     private Long start = null;
     private Integer fileSize = null;
-    private Integer socketPort = null;
+    private Socket socket = null;
     private static final int BUFFER_SIZE = 8192;
     private String serverAddress = ServerConfig.SERVER_URL;
     private TransferLog log = null;
 
-    Socket socket = null;
 
     private static Map<Integer, Long> progressRate = null;
     private Integer index = null;
 
     private Lock lock = new ReentrantLock();
 
-    public UploadFileSubtaskRunnable(String filePath, Long start, Integer size, Integer port, Map<Integer, Long> rate, Integer index) {
+    public UploadFileSubtaskRunnable(String filePath, Long start, Integer size, Socket socket, Map<Integer, Long> rate, Integer index) {
         this.fileAbsolutePath = filePath;
         this.start = start;
         this.fileSize = size;
-        this.socketPort = port;
+        this.socket = socket;
         progressRate = rate;
         this.index = index;
     }
@@ -47,7 +43,18 @@ public class UploadFileSubtaskRunnable implements Callable<Integer> {
     @Override
     public Integer call() {
         try {
-            connect(0);
+            InputStream inputStream = socket.getInputStream();
+            int len = 0;
+            byte[] bs = new byte[1024];
+            StringBuilder sb = new StringBuilder();
+            while ((len = inputStream.read(bs)) != -1) {
+                sb.append(new String(bs, 0, len, "UTF-8"));
+                if ('$' == sb.charAt(sb.length() - 1)) {
+                    break;
+                }
+            }
+            Long offset = Long.parseLong(sb.toString().substring(0, sb.length() - 1));
+            start += offset;
             outputStream = new BufferedOutputStream(socket.getOutputStream());
             byte[] bytes = new byte[BUFFER_SIZE];
             File file = new File(fileAbsolutePath);
@@ -66,8 +73,6 @@ public class UploadFileSubtaskRunnable implements Callable<Integer> {
                 progressRate.put(index, sum);
             }
             outputFile.close();
-            outputStream.close();
-            wakeUp();
             return 1;
         } catch (Exception e) {
             e.printStackTrace();
@@ -75,6 +80,8 @@ public class UploadFileSubtaskRunnable implements Callable<Integer> {
         } finally {
             if (socket != null) {
                 try {
+                    socket.shutdownInput();
+                    socket.shutdownOutput();
                     socket.close();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -96,30 +103,6 @@ public class UploadFileSubtaskRunnable implements Callable<Integer> {
                 wait(1000 * 5);
             }
             writeBytes(bytes, size, times);
-        }
-    }
-
-    private synchronized void wakeUp() {
-        lock.lock();
-        try {
-            notifyAll();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void connect(int times) throws InterruptedException {
-        try {
-            if (times % 5 == 0) {
-                socket = new Socket();
-            }
-            socket.connect(new InetSocketAddress(serverAddress, socketPort));
-        } catch (Exception e) {
-            synchronized (this) {
-                wait(1000 * 5);
-            }
-            times++;
-            connect(times);
         }
     }
 }

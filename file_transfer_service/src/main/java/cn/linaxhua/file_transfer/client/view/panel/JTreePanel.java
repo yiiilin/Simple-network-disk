@@ -137,17 +137,12 @@ public class JTreePanel extends JPanel {
             }
             String savePath = jFileChooser.getSelectedFile().getPath();
             File downloadFile = new File(savePath + "/" + downloadStrcture.getName());
-            if(downloadFile.exists()){
+            if (downloadFile.exists()) {
                 JOptionPane.showMessageDialog(this, "下载目录已有此文件", "错误", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             try {
-                List<Integer> ports = apiService.downloadFile(downloadStrcture);
-                if (ports == null) {
-                    JOptionPane.showMessageDialog(this, "下载服务异常", "错误", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                socketManager.downloadFile(ports, downloadStrcture, savePath, this);
+                socketManager.downloadFile(downloadStrcture, savePath, this);
             } catch (Exception exception) {
                 exception.printStackTrace();
                 JOptionPane.showMessageDialog(this, "下载服务异常", "错误", JOptionPane.ERROR_MESSAGE);
@@ -171,7 +166,6 @@ public class JTreePanel extends JPanel {
             structure
                     .setUid(uid)
                     .setPath(dirPath)
-                    .setUuid(UUID.randomUUID().toString().replaceAll("-", ""))
                     .setName(file.getName())
                     .setSize(file.length())
                     .setUpdate_time(new Date())
@@ -187,8 +181,9 @@ public class JTreePanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "上传服务异常", "错误", JOptionPane.ERROR_MESSAGE);
             }
             try {
-                List<Integer> ports = apiService.uploadFile(structure);
-                socketManager.uploadFile(ports, structure, filePath, this);
+                String uuid = apiService.uploadFile(structure);
+                structure.setUuid(uuid);
+                socketManager.uploadFile(structure, filePath, this);
             } catch (Exception exception) {
                 exception.printStackTrace();
                 JOptionPane.showMessageDialog(this, "上传服务异常", "错误", JOptionPane.ERROR_MESSAGE);

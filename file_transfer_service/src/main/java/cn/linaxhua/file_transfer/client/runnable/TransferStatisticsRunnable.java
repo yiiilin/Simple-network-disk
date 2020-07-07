@@ -47,10 +47,7 @@ public class TransferStatisticsRunnable implements Runnable {
         timeDeque.addFirst(System.currentTimeMillis());
         timeDeque.addFirst(System.currentTimeMillis());
         Long temp;
-        while (true) {
-            if (Thread.currentThread().isInterrupted()) {
-                break;
-            }
+        while (!Thread.currentThread().isInterrupted()) {
             sumSize = 0;
             for (int i = 0; i < taskAmount; i++) {
                 temp = progressRate.get(i);

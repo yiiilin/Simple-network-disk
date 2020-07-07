@@ -92,23 +92,15 @@ public class BusinessController {
         }
     }
 
-    @PreAuthorize("isAuthenticated()")
-    @RequestMapping(value = "downloadFile", method = RequestMethod.POST)
-    public ResponseResultJson<List<Integer>> downloadFile(@RequestBody Structure structure) {
-        try {
-            List<Integer> ports = socketManager.getDownloadFilePorts(structure);
-            return ResponseResultJson.success("获取下载接口成功", ports);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseResultJson.unknownError("未知错误", null);
-        }
-    }
-
     @RequestMapping(value = "uploadFile", method = RequestMethod.POST)
-    public ResponseResultJson<List<Integer>> uploadFile(@RequestBody Structure structure) {
+    public ResponseResultJson<String> uploadFile(@RequestBody Structure structure) {
         try {
-            List<Integer> ports = socketManager.getUploadFilePorts(structure);
-            return ResponseResultJson.success("获取上传接口成功", ports);
+            String uuid = socketManager.getUploadFileUUID(structure);
+            if (uuid != null) {
+                return ResponseResultJson.success("获取上传文件UUID成功", uuid);
+            } else {
+                return ResponseResultJson.unknownError("未知错误", null);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseResultJson.unknownError("未知错误", null);
