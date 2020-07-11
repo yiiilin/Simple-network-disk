@@ -85,12 +85,12 @@
                     <imageTags>
                         <imageTag>latest</imageTag>
                     </imageTags>
-                    <baseImage>java</baseImage>
+                    <baseImage>arm64v8/openjdk</baseImage>
                     <maintainer>xieyilin qh2569@outlook.com</maintainer>
                     <workdir>/ROOT</workdir>
                     <entryPoint>["java","-jar","${project.build.finalName}.jar"]</entryPoint>
                     <!-- docker远程服务器地址 -->
-                    <dockerHost>###################</dockerHost>
+                    <dockerHost>http://124.70.154.132:2376</dockerHost>
 
                     <resources>
                         <resource>

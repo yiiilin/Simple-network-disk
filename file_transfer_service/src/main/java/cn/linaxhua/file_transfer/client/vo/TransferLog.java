@@ -16,7 +16,7 @@ public class TransferLog {
     private static final String FILE_SIZE = "大小";
     private static final String TYPE = "类型";
     private static final String STATUS = "状态";
-    private static final String HAS_DOWNLOAD_SIZE = "已下载";
+    private static final String HAS_DOWNLOAD_SIZE = "已上传/下载";
     private static final String TIME_LEFT = "剩余时间";
     private static final String TRANSFER_SPEED = "传输速度";
     private static final String LAST_CONNECT_TIME = "完成时间";

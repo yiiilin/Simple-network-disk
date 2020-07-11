@@ -53,12 +53,13 @@ public class SocketManager {
     @PostConstruct
     private void init() {
         BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<Runnable>(1000);
-        socketExecutor = new ThreadPoolExecutor(4, SOCKET_THREAD_SIZE, 0, TimeUnit.SECONDS, blockingQueue);
+        socketExecutor = new ThreadPoolExecutor(SOCKET_THREAD_SIZE, SOCKET_THREAD_SIZE, 5, TimeUnit.SECONDS, blockingQueue);
+        ((ThreadPoolExecutor) socketExecutor).allowCoreThreadTimeOut(true);
     }
 
 
     public String getUploadFileUUID(Structure structure) {
-        String uuid = UUID.randomUUID().toString().replace("-","");
+        String uuid = UUID.randomUUID().toString().replace("-", "");
         structure.setUuid(uuid)
                 .setType("uploading");
         try {

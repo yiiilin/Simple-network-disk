@@ -97,7 +97,7 @@ public class BusinessController {
         try {
             String uuid = socketManager.getUploadFileUUID(structure);
             if (uuid != null) {
-                return ResponseResultJson.success("获取上传文件UUID成功", uuid);
+                return ResponseResultJson.success("获取上传文件UUID及id成功", uuid+"-"+structure.getId());
             } else {
                 return ResponseResultJson.unknownError("未知错误", null);
             }

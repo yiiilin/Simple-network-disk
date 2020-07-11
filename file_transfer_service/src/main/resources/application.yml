@@ -2,7 +2,7 @@ server:
   port: 9001
 spring:
   profiles:
-    active: dev
+    active: huawei
   application:
     name: SERVICE-SERVICE
   main:
@@ -30,3 +30,15 @@ spring:
 api-service:
   url: http://linaxhua.cn:7001/api/
   server-address: linaxhua.cn
+---
+spring:
+  profiles: ali
+api-service:
+  url: http://47.103.1.175:7001/api/
+  server-address: 47.103.1.175
+---
+spring:
+  profiles: huawei
+api-service:
+  url: http://124.70.154.132:7000/api/
+  server-address: 124.70.154.132

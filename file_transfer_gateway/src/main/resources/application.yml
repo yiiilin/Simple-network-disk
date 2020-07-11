@@ -2,7 +2,7 @@ server:
   port: 7001
 spring:
   profiles:
-    active: dev
+    active: huawei
   application:
     name: GATEWAY-ZUUL
   main:
@@ -49,3 +49,19 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://192.168.0.49:6001/eureka/
+---
+spring:
+  profiles: ali
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://172.19.105.16:6001/eureka/
+---
+spring:
+  profiles: huawei
+server:
+  port: 7000
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.0.62:6001/eureka/

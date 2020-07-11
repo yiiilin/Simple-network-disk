@@ -6,6 +6,7 @@ import cn.linaxhua.file_transfer.common.entity.Structure;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -23,6 +24,13 @@ public class JTreePanel extends JPanel {
     private ApiService apiService;
     @Autowired
     private SocketManager socketManager;
+
+    private static ApiService apiServiceProxy;
+
+    @PostConstruct
+    private void init() {
+        apiServiceProxy = apiService;
+    }
 
     private List<Structure> structureList = null;
     private Integer uid = null;
@@ -93,10 +101,17 @@ public class JTreePanel extends JPanel {
                 }
             }
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(structure.getName());
-            if (structure.getType().equals("dir")) {
-                dirPathsb.append("/");
-                dirPathsb.append(structure.getName());
-                dirPathSet.add(dirPathsb.toString());
+            switch (structure.getType()) {
+                case "dir":
+                    node = new DefaultMutableTreeNode(structure.getName());
+                    dirPathsb.append("/");
+                    dirPathsb.append(structure.getName());
+                    dirPathSet.add(dirPathsb.toString());
+                    break;
+                case "uploading":
+                    node = new DefaultMutableTreeNode(structure.getName() + "[未完成上传]");
+                default:
+                    break;
             }
             currentNode.add(node);
         }
@@ -173,17 +188,24 @@ public class JTreePanel extends JPanel {
             try {
                 Structure s = apiService.getStructureByPath(dirPath, file.getName(), uid);
                 if (s != null) {
-                    JOptionPane.showMessageDialog(this, "该目录下已有同名文件", "错误", JOptionPane.WARNING_MESSAGE);
+                    if ("file".equals(s.getType())) {
+                        JOptionPane.showMessageDialog(this, "该目录下已有同名文件", "错误", JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        String uuid = s.getUuid();
+                        String id = s.getId().toString();
+                        structure.setId(Integer.parseInt(id));
+                        structure.setUuid(uuid);
+                        socketManager.uploadFile(structure, filePath, this);
+                    }
                     return;
+                } else {
+                    String[] result = apiService.uploadFile(structure);
+                    String uuid = result[0];
+                    String id = result[1];
+                    structure.setId(Integer.parseInt(id));
+                    structure.setUuid(uuid);
+                    socketManager.uploadFile(structure, filePath, this);
                 }
-            } catch (Exception exception) {
-                exception.printStackTrace();
-                JOptionPane.showMessageDialog(this, "上传服务异常", "错误", JOptionPane.ERROR_MESSAGE);
-            }
-            try {
-                String uuid = apiService.uploadFile(structure);
-                structure.setUuid(uuid);
-                socketManager.uploadFile(structure, filePath, this);
             } catch (Exception exception) {
                 exception.printStackTrace();
                 JOptionPane.showMessageDialog(this, "上传服务异常", "错误", JOptionPane.ERROR_MESSAGE);
@@ -222,6 +244,9 @@ public class JTreePanel extends JPanel {
             }
             String path = map.get("path");
             String name = map.get("name");
+            if (name.contains("[未完成上传]")) {
+                name = name.substring(0, name.lastIndexOf('['));
+            }
             Structure structure = null;
             try {
                 structure = apiService.getStructureByPath(path, name, uid);
@@ -355,5 +380,12 @@ public class JTreePanel extends JPanel {
         map.put("path", filePath);
         map.put("name", name);
         return map;
+    }
+
+    public static void updateFileType(Integer id, String type) {
+        Structure structure = new Structure()
+                .setId(id)
+                .setType(type);
+        apiServiceProxy.updateStructure(structure);
     }
 }

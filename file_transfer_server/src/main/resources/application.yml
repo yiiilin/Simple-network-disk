@@ -2,7 +2,7 @@ server:
   port: 8001
 spring:
   profiles:
-    active: dev
+    active: huawei
   application:
     name: SERVICE-SERVER
   datasource:
@@ -55,3 +55,26 @@ eureka:
   client:
     service-url:
       defaultZone: http://192.168.0.49:6001/eureka
+
+---
+spring:
+  profiles: ali
+  datasource:
+    url: jdbc:mysql://rm-uf6ck33a76x59qa8q9o.mysql.rds.aliyuncs.com:3306/file_transfer?useUnicode=true&characterEncoding=utf8
+    username: filetransfer
+    password: filetransfer
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://172.19.105.16:6001/eureka/
+---
+spring:
+  profiles: huawei
+  datasource:
+    url: jdbc:mysql://rm-uf6ck33a76x59qa8q9o.mysql.rds.aliyuncs.com:3306/file_transfer?useUnicode=true&characterEncoding=utf8
+    username: filetransfer
+    password: filetransfer
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.0.62:6001/eureka/

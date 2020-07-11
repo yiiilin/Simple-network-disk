@@ -120,7 +120,7 @@ public class ApiService {
         }
     }
 
-    public String uploadFile(Structure structure) {
+    public String[] uploadFile(Structure structure) {
         JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(structure));
         HttpEntity httpEntity = getTokenHeader(null, jsonObject);
         ResponseEntity<String> result = restTemplate.exchange(getUrl(RestTemplateUtil.UPLOAD_FILE), HttpMethod.POST, httpEntity, String.class);
@@ -129,7 +129,7 @@ public class ApiService {
             if (resultJson.get("data") == null) {
                 return null;
             }
-            return resultJson.get("data").toString();
+            return resultJson.get("data").toString().split("-");
         } else {
             return null;
         }

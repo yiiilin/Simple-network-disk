@@ -65,14 +65,14 @@ public class SocketManager {
         BlockingQueue<Runnable> fileBlockingQueue = new ArrayBlockingQueue<Runnable>(300);
         socketExecutor = new ThreadPoolExecutor(3, SOCKET_PORT_SIZE, 0, TimeUnit.SECONDS, fileBlockingQueue);
         BlockingQueue<Runnable> statistcsQueue = new ArrayBlockingQueue<Runnable>(30);
-        statistcsExecutor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, statistcsQueue);
+        statistcsExecutor = new ThreadPoolExecutor(100, 100, 0, TimeUnit.SECONDS, statistcsQueue);
     }
 
     public void downloadFile(Structure structure, String savePath, JTreePanel jTreePanel) throws IOException {
         TransferLog transferLog = new TransferLog();
         transferLog.setFileName(structure.getName())
                 .setFileSize(structure.getSize().toString())
-                .setStatus("进行中")
+                .setStatus("等待中")
                 .setHasDownloadSize("0B")
                 .setTimeLeft("无限期")
                 .setTransferSpeed("0.00B/s")
@@ -86,7 +86,7 @@ public class SocketManager {
         TransferLog transferLog = new TransferLog();
         transferLog.setFileName(structure.getName())
                 .setFileSize(structure.getSize().toString())
-                .setStatus("进行中")
+                .setStatus("等待中")
                 .setHasDownloadSize("0B")
                 .setTimeLeft("无限期")
                 .setTransferSpeed("0.00B/s")

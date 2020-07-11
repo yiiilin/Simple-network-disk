@@ -1,23 +1,17 @@
 package cn.linaxhua.file_transfer.server.runnable;
 
-import cn.linaxhua.file_transfer.common.util.NetUtil;
 import cn.linaxhua.file_transfer.common.config.FileConfig;
 import cn.linaxhua.file_transfer.server.thread_manager.FileHandler;
-import jdk.internal.util.xml.impl.Input;
-import lombok.SneakyThrows;
-import org.apache.catalina.connector.OutputBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class UploadFileSubtaskCallable implements Runnable {
     private Socket socket = null;
@@ -28,6 +22,8 @@ public class UploadFileSubtaskCallable implements Runnable {
     private static final int BUFFER_SIZE = 8192;
     RandomAccessFile randomAccessFile = null;
     private ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> tasks = null;
+
+    private static final Logger log = LoggerFactory.getLogger(UploadFileSubtaskCallable.class);
 
 
     public UploadFileSubtaskCallable(Socket socket, String uuid, Integer num, Integer index) {
@@ -41,23 +37,27 @@ public class UploadFileSubtaskCallable implements Runnable {
 
     @Override
     public void run() {
+        File file = null;
+        Long fileExistSize = 0L;
         try {
+            socket.setSoTimeout(10000);
+            log.info(socket + "-" + uuid + "-" + num + "-" + index);
             File tempDir = new File(FileConfig.TEMP_FILE_PATH);
             if (!tempDir.exists()) {
                 tempDir.mkdirs();
             }
-            File file = new File(FileConfig.TEMP_FILE_PATH + "/" + tempFileName);
-            Long fileExistSize = 0L;
+            file = new File(FileConfig.TEMP_FILE_PATH + "/" + tempFileName);
             if (file.exists()) {
                 fileExistSize = file.length();
-            }
-            if (!file.createNewFile()) {
+            } else if (!file.createNewFile()) {
                 return;
             }
+            log.info("fileExistSize:" + fileExistSize);
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
             randomAccessFile.seek(fileExistSize);
 
             PrintWriter pw = new PrintWriter(socket.getOutputStream());
+            log.info(fileExistSize + "$");
             pw.print(fileExistSize + "$");
             pw.flush();
             InputStream inputStream = new BufferedInputStream(socket.getInputStream());
@@ -66,12 +66,13 @@ public class UploadFileSubtaskCallable implements Runnable {
             while ((temp = inputStream.read(bytes)) != -1) {
                 randomAccessFile.write(bytes, 0, temp);
             }
-            randomAccessFile.close();
-            createFinishTaskSet();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
+                log.info(socket + "-" + index + ": has down");
+                createFinishTaskSet();
+                randomAccessFile.close();
                 socket.shutdownOutput();
                 socket.shutdownInput();
                 socket.close();
@@ -85,7 +86,9 @@ public class UploadFileSubtaskCallable implements Runnable {
         if (tasks.get(uuid) == null) {
             tasks.put(uuid, new ConcurrentSkipListSet<>());
         }
-        tasks.get(uuid).add(index);
+        if (!tasks.get(uuid).contains(index)) {
+            tasks.get(uuid).add(index);
+        }
         if (FileHandler.finishedTasks.get(uuid).size() == num) {
             mergeFiles();
         }

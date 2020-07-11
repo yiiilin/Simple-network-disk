@@ -19,6 +19,7 @@ public class DownloadFileSubtaskRunnable implements Runnable {
 
     private BufferedOutputStream outputStream = null;
     private InputStream inputStream = null;
+    private RandomAccessFile outputFile = null;
 
     private static final int BUFFER_SIZE = 8192;
 
@@ -36,7 +37,7 @@ public class DownloadFileSubtaskRunnable implements Runnable {
     public void run() {
         try {
             File file = new File(FileConfig.EXIST_FILE_PATH + "/" + uuid);
-            RandomAccessFile outputFile = new RandomAccessFile(file, "r");
+            outputFile = new RandomAccessFile(file, "r");
             outputFile.seek(start);
             outputStream = new BufferedOutputStream(socket.getOutputStream());
             byte[] bytes = new byte[BUFFER_SIZE];
@@ -49,10 +50,10 @@ public class DownloadFileSubtaskRunnable implements Runnable {
                 outputStream.write(bytes, 0, tempSize);
                 outputStream.flush();
             }
-            outputFile.close();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            outputFile.close();
             socket.shutdownOutput();
             socket.shutdownInput();
             socket.close();

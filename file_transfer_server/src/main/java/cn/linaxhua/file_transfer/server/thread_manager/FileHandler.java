@@ -3,6 +3,7 @@ package cn.linaxhua.file_transfer.server.thread_manager;
 import cn.linaxhua.file_transfer.common.config.FileConfig;
 import cn.linaxhua.file_transfer.server.runnable.DownloadFileSubtaskRunnable;
 import cn.linaxhua.file_transfer.server.runnable.UploadFileSubtaskCallable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 @Component
+@Slf4j
 public class FileHandler {
     private ExecutorService executor;
     private Integer port;
@@ -56,6 +58,7 @@ public class FileHandler {
                          * s 表示从什么位置开始上传或下载
                          * e 表示从什么位置结束
                          */
+                        log.info(sb.toString());
                         String[] strings = sb.toString().substring(0, sb.length() - 1).split("-");
                         Boolean isUpload = true;
                         String uuid;

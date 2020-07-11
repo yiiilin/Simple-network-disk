@@ -7,6 +7,8 @@ import cn.linaxhua.file_transfer.client.view.panel.TransferListPanel;
 import cn.linaxhua.file_transfer.client.vo.TransferLog;
 import cn.linaxhua.file_transfer.common.config.FileConfig;
 import cn.linaxhua.file_transfer.common.entity.Structure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +33,8 @@ public class FileHandleRunnable implements Runnable {
     private JTreePanel jTreePanel;
     private Integer index;
     TransferLog transferLog = new TransferLog();
-    Map<Integer, Long> taskStatistcs = new HashMap<>();
+    private Map<Integer, Long> taskStatistcs = new ConcurrentHashMap<>();
+
 
     private static final String serverAddress = ServerConfig.SERVER_URL;
     private static final Integer serverPort = SocketManager.getTransferPort();
@@ -40,7 +43,7 @@ public class FileHandleRunnable implements Runnable {
      * 第一个Integer表示记录编号，即任务编号
      * 第二个Map是分片下载进度统计，其中Integer是第几个下载任务，Long是下载的字节数
      */
-    private static ConcurrentHashMap<Integer, Map<Integer, Long>> progressRate = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, Map<Integer, Long>> progressRate = new ConcurrentHashMap<>();
 
 
     public FileHandleRunnable(Structure structure, Integer handleType, ThreadPoolExecutor executor, String path, Integer fileMaxSize, JTreePanel jTreePanel, ThreadPoolExecutor statistcsExecutor, TransferLog transferLog, int index) throws IOException {
@@ -61,18 +64,15 @@ public class FileHandleRunnable implements Runnable {
             progressRate.put(index, taskStatistcs);
             //上传
             if (handleType == 2) {
+
+                transferLog.setStatus("上传中");
+                TransferListPanel.updateData(transferLog, index);
+                jTreePanel.refreshUI();
+
                 Integer socketNum = (int) Math.ceil(structure.getSize() / (double) FILE_MAX_SIZE);
                 List<Callable<Integer>> callables = new ArrayList<>();
                 for (int i = 0; i < socketNum; i++) {
-                    Socket socket = new Socket(serverAddress, serverPort);
-                    Long start = (long) i * (long) FILE_MAX_SIZE;
-                    String firstStr = getFirstString(structure, 0, socketNum, i, start, 0L);
-                    sendMsg(socket, firstStr);
-                    if (i == socketNum - 1) {
-                        callables.add(new UploadFileSubtaskRunnable(path, start, (int) (structure.getSize() - (long) i * (long) FILE_MAX_SIZE), socket, taskStatistcs, i));
-                    } else {
-                        callables.add(new UploadFileSubtaskRunnable(path, start, FILE_MAX_SIZE, socket, taskStatistcs, i));
-                    }
+                    callables.add(new UploadFileSubtaskRunnable(path, serverPort, FILE_MAX_SIZE, structure, taskStatistcs, i, socketNum));
                 }
                 Future statistcsFuture = statistcsExecutor.submit(new TransferStatisticsRunnable(transferLog, index, socketNum, structure.getSize(), taskStatistcs));
                 List<Future<Integer>> futures = executor.invokeAll(callables);
@@ -86,23 +86,28 @@ public class FileHandleRunnable implements Runnable {
                     return;
                 }
                 try {
+                    Thread.sleep(1000);
                     statistcsFuture.cancel(true);
-                    while (!statistcsFuture.isCancelled()) {
-                    }
-                    transferLog.setHasDownloadSize(TransferListPanel.getSize(structure.getSize().toString()))
-                            .setTransferSpeed("0.00B/s");
-                    TransferListPanel.updateData(transferLog, index);
+                    while(!statistcsFuture.isDone()){};
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 if (result.equals(socketNum)) {
-                    Thread.sleep(1000);
+                    JTreePanel.updateFileType(structure.getId(), "file");
+                    transferLog.setHasDownloadSize(TransferListPanel.getSize(structure.getSize().toString()))
+                            .setTransferSpeed("0.00B/s");
+                    TransferListPanel.updateData(transferLog, index);
                     jTreePanel.refreshUI();
                 }
                 taskFinish();
                 return;
             }
             if (handleType == 1) {
+
+                transferLog.setStatus("下载中");
+                TransferListPanel.updateData(transferLog, index);
+                jTreePanel.refreshUI();
+
                 File tempFile = new File(FileConfig.TEMP_FILE_PATH);
                 if (!tempFile.exists()) {
                     tempFile.mkdir();

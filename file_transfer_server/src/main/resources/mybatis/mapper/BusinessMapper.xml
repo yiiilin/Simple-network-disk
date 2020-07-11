@@ -4,7 +4,7 @@
     <sql id="structure">
         id,uid,path,uuid,name,size,update_time,type
     </sql>
-    <insert id="addStructure">
+    <insert id="addStructure" useGeneratedKeys="true" keyProperty="id">
         insert into `structure`
         (uid,path,uuid,name,size,update_time,type )
         values
