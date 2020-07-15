@@ -75,7 +75,7 @@ public class FileHandler {
                         start = Long.parseLong(strings[4]);
                         end = Long.parseLong(strings[5]);
                         if (isUpload) {
-                            executor.submit(new UploadFileSubtaskCallable(socket, uuid, socketNums, index));
+                            executor.submit(new UploadFileSubtaskCallable(socket, uuid, socketNums, index,end-start));
                         } else {
                             executor.submit(new DownloadFileSubtaskRunnable(socket, uuid, index, start, end));
                         }

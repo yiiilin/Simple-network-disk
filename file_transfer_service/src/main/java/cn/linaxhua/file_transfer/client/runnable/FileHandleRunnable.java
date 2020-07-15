@@ -88,7 +88,9 @@ public class FileHandleRunnable implements Runnable {
                 try {
                     Thread.sleep(1000);
                     statistcsFuture.cancel(true);
-                    while(!statistcsFuture.isDone()){};
+                    while (!statistcsFuture.isDone()) {
+                    }
+                    ;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -124,12 +126,13 @@ public class FileHandleRunnable implements Runnable {
                     }
                     Long end = start + FILE_MAX_SIZE;
                     start += fileExistSize;
+                    taskStatistcs.put(i, fileExistSize);
                     if (end > structure.getSize()) {
                         end = structure.getSize();
                     }
                     String firstStr = getFirstString(structure, 1, socketNum, i, start, end);
                     sendMsg(socket, firstStr);
-                    callables.add(new DownloadFileSubtaskRunnable(structure.getUuid(), socket, taskStatistcs, i));
+                    callables.add(new DownloadFileSubtaskRunnable(structure.getUuid(), socket, taskStatistcs, i, fileExistSize));
                 }
                 Future statistcsFuture = statistcsExecutor.submit(new TransferStatisticsRunnable(transferLog, index, socketNum, structure.getSize(), taskStatistcs));
                 List<Future<Boolean>> futures = executor.invokeAll(callables);

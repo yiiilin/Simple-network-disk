@@ -23,13 +23,15 @@ public class DownloadFileSubtaskRunnable implements Callable<Boolean> {
 
     private static Map<Integer, Long> progressRate = null;
     private Integer index = null;
+    private Long existSize=null;
 
 
-    public DownloadFileSubtaskRunnable(String uuid, Socket socket, Map<Integer, Long> rate, Integer index) {
+    public DownloadFileSubtaskRunnable(String uuid, Socket socket, Map<Integer, Long> rate, Integer index,Long existSize) {
         tempFileName = uuid + '-' + index;
         this.socket = socket;
         progressRate = rate;
         this.index = index;
+        this.existSize=existSize;
     }
 
     @SneakyThrows
@@ -51,7 +53,7 @@ public class DownloadFileSubtaskRunnable implements Callable<Boolean> {
             byte[] bytes = new byte[BUFFER_SIZE];
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
             randomAccessFile.seek(fileExistSize);
-            Long sum = 0L;
+            Long sum = existSize;
             int temp;
             while ((temp = inputStream.read(bytes)) != -1) {
                 randomAccessFile.write(bytes, 0, temp);

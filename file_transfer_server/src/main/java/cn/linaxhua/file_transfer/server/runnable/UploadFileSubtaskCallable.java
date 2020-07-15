@@ -24,16 +24,19 @@ public class UploadFileSubtaskCallable implements Runnable {
     private ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> tasks = null;
 
     private static final Logger log = LoggerFactory.getLogger(UploadFileSubtaskCallable.class);
+    private Long uploadSize = null;
 
-
-    public UploadFileSubtaskCallable(Socket socket, String uuid, Integer num, Integer index) {
+    public UploadFileSubtaskCallable(Socket socket, String uuid, Integer num, Integer index, long uploadSize) {
         this.socket = socket;
         this.uuid = uuid;
         tempFileName = uuid + '-' + index;
         this.num = num;
         this.index = index;
         tasks = FileHandler.finishedTasks;
+        this.uploadSize = uploadSize;
     }
+
+    private Long statistic = null;
 
     @Override
     public void run() {
@@ -63,21 +66,24 @@ public class UploadFileSubtaskCallable implements Runnable {
             InputStream inputStream = new BufferedInputStream(socket.getInputStream());
             byte[] bytes = new byte[BUFFER_SIZE];
             int temp;
+            statistic = fileExistSize;
             while ((temp = inputStream.read(bytes)) != -1) {
+                statistic += (long) temp;
                 randomAccessFile.write(bytes, 0, temp);
             }
+            randomAccessFile.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 log.info(socket + "-" + index + ": has down");
-                createFinishTaskSet();
-                randomAccessFile.close();
                 socket.shutdownOutput();
                 socket.shutdownInput();
                 socket.close();
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                createFinishTaskSet();
             }
         }
     }
